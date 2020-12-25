@@ -154,7 +154,7 @@ func setupMiddlewares(router *chi.Mux, resolvers *graph.Resolver) {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:4200"},
+		AllowedOrigins: []string{"http://localhost:4200", "https://graph-gongular-frontend.netlify.app"},
 		AllowedMethods: []string{
 			http.MethodHead,
 			http.MethodGet,
