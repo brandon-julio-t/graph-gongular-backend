@@ -32,7 +32,7 @@ var secret []byte
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("error loading .env file")
 	}
 
 	secret = []byte(os.Getenv("APP_KEY"))
