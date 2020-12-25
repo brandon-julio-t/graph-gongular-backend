@@ -6,13 +6,12 @@ package graph
 import (
 	"context"
 	"errors"
-	"fmt"
-	"time"
-
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
 	"github.com/dgrijalva/jwt-go"
+	"net/http"
+	"time"
 )
 
 func (r *mutationResolver) Register(ctx context.Context, input *model.Register) (*model.User, error) {
@@ -47,8 +46,17 @@ func (r *queryResolver) Login(ctx context.Context, input *model.Login) (*string,
 		return nil, err
 	}
 
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		Domain:   "graph-gongular-backend.herokuapp.com",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	}
+
 	w := *middlewares.UseCookieProvider(ctx)
-	w.Header().Set("Set-Cookie", fmt.Sprintf("jwt=%v; HttpOnly", token))
+	w.Header().Set("Set-Cookie", cookie.String())
 
 	return &token, nil
 }
@@ -60,8 +68,19 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 		return nil, errors.New("not signed in")
 	}
 
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Domain:   "graph-gongular-backend.herokuapp.com",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   0,
+		Expires:  time.Time{},
+	}
+
 	w := *middlewares.UseCookieProvider(ctx)
-	w.Header().Add("Set-Cookie", fmt.Sprintf("jwt=; expires=%v; HttpOnly", time.Time{}))
+	w.Header().Add("Set-Cookie", cookie.String())
 
 	result := true
 	return &result, nil
