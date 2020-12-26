@@ -6,14 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="1d061126-3f04-4c8f-94a1-77d00b416b78" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/generated/generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/generated/generated.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/model/models_gen.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/model/models_gen.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/user.graphqls" beforeDir="false" afterPath="$PROJECT_DIR$/graph/user.graphqls" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph/user.resolvers.go" beforeDir="false" afterPath="$PROJECT_DIR$/graph/user.resolvers.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/middlewares/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/middlewares/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/repository/user-repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/repository/user-repository.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/user-service.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/user-service.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

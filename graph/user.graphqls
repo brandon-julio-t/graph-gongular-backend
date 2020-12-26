@@ -24,7 +24,6 @@ input Update {
     id: ID!
     name: String!
     email: String!
-    password: String!
     dateOfBirth: Time!
     gender: String!
     address: String!

@@ -73,17 +73,11 @@ func (s *UserService) UpdateAccount(input *model.Update) (*model.User, error) {
 		return nil, err
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-
 	user.Name = input.Name
 	user.Gender = input.Gender
 	user.DateOfBirth = input.DateOfBirth
 	user.Email = input.Email
 	user.Address = input.Address
-	user.Password = string(hash)
 
 	return s.UserRepository.Update(user)
 }

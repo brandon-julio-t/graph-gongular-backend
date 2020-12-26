@@ -28,7 +28,6 @@ type Update struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
-	Password    string    `json:"password"`
 	DateOfBirth time.Time `json:"dateOfBirth"`
 	Gender      string    `json:"gender"`
 	Address     string    `json:"address"`
