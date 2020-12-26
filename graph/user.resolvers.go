@@ -6,12 +6,13 @@ package graph
 import (
 	"context"
 	"errors"
+	"net/http"
+	"time"
+
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
-	"github.com/dgrijalva/jwt-go"
-	"net/http"
-	"time"
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 func (r *mutationResolver) Register(ctx context.Context, input *model.Register) (*model.User, error) {
@@ -19,6 +20,14 @@ func (r *mutationResolver) Register(ctx context.Context, input *model.Register) 
 		return nil, errors.New("user already exists")
 	}
 	return r.UserService.Register(input)
+}
+
+func (r *mutationResolver) UpdateAccount(ctx context.Context, input *model.Update) (*model.User, error) {
+	return r.UserService.UpdateAccount(input)
+}
+
+func (r *mutationResolver) DeleteAccount(ctx context.Context, input *model.DeleteAccount) (*model.User, error) {
+	return r.UserService.DeleteAccount(input)
 }
 
 func (r *queryResolver) Auth(ctx context.Context) (*model.User, error) {

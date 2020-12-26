@@ -6,6 +6,7 @@ import (
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/services"
 	"github.com/dgrijalva/jwt-go"
+	"log"
 	"net/http"
 )
 
@@ -65,6 +66,7 @@ func userByToken(r *http.Request, secret []byte, userService *services.UserServi
 	user, err := userService.GetById(userId)
 
 	if err != nil {
+		log.Println(err)
 		return nil, false
 	}
 

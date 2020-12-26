@@ -154,7 +154,7 @@ func setupMiddlewares(router *chi.Mux, resolvers *graph.Resolver) {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:4200", "https://graph-gongular-frontend.netlify.app"},
+		AllowedOrigins: []string{"http://localhost:8080", "http://localhost:4200", "https://graph-gongular-frontend.netlify.app"},
 		AllowedMethods: []string{
 			http.MethodHead,
 			http.MethodGet,
@@ -176,7 +176,7 @@ func setupMiddlewares(router *chi.Mux, resolvers *graph.Resolver) {
 	router.Use(middlewares.AuthMiddleware(secret, resolvers.UserService))
 }
 
-func runServer(port string, router *chi.Mux)  {
+func runServer(port string, router *chi.Mux) {
 	log.Printf("Starting app with JWT secret: %v\n", secret)
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
