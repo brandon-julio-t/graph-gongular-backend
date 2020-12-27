@@ -1,0 +1,18 @@
+type FileUpload {
+    id: ID!
+    path: String!
+    filename: String!
+    size: Int!
+    contentType: String!
+    userId: ID!
+}
+
+input UpdateFile {
+    id: ID!
+    filename: String!
+}
+
+extend type Mutation {
+    updateFile(input: UpdateFile): FileUpload!
+    deleteFile(id: ID!): FileUpload!
+}

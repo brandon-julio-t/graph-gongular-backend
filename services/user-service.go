@@ -12,6 +12,7 @@ import (
 type UserService struct {
 	UserRepository     *repository.UserRepository
 	UserRoleRepository *repository.UserRoleRepository
+	FileRepository *repository.FileRepository
 }
 
 func (s *UserService) GetById(id string) (*model.User, error) {
@@ -66,7 +67,7 @@ func (s *UserService) Register(input *model.Register) (*model.User, error) {
 	})
 }
 
-func (s *UserService) UpdateAccount(id string, input *model.Update) (*model.User, error) {
+func (s *UserService) UpdateAccount(id string, input *model.UpdateUser) (*model.User, error) {
 	user, err := s.GetById(id)
 
 	if err != nil {
@@ -82,10 +83,29 @@ func (s *UserService) UpdateAccount(id string, input *model.Update) (*model.User
 	return s.UserRepository.Update(user)
 }
 
+func (s *UserService) UpdateFile(input *model.UpdateFile) (*model.FileUpload, error) {
+	file, err := s.FileRepository.GetById(input.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	file.Filename = input.Filename
+
+	return s.FileRepository.Update(file)
+}
+
 func (s *UserService) DeleteAccount(id string) (*model.User, error) {
 	user, err := s.GetById(id)
 	if err != nil {
 		return nil, err
 	}
 	return s.UserRepository.Delete(user)
+}
+
+func (s *UserService) SaveFile(file *model.FileUpload) (*model.FileUpload, error) {
+	return s.FileRepository.Save(file)
+}
+
+func (s *UserService) DeleteFile(id string) (*model.FileUpload, error) {
+	return s.FileRepository.Delete(id)
 }

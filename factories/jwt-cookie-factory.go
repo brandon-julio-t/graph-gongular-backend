@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
-const JwtCookieName = "jwt"
-const domain = "graph-gongular-backend.herokuapp.com"
+const (
+	JwtCookieName = "jwt"
+	domain        = "graph-gongular-backend.herokuapp.com"
+)
 
 type JwtCookieFactory struct{}
 

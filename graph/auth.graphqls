@@ -1,0 +1,13 @@
+input Login {
+    email: String!
+    password: String!
+}
+
+type Query {
+    auth: User!
+}
+
+extend type Mutation {
+    login(input: Login): String!
+    logout: Boolean!
+}

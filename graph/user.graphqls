@@ -1,14 +1,10 @@
 scalar Time
+scalar Upload
 
-input Login {
-    email: String!
-    password: String!
-}
-
-type Query {
-    auth: User
-    login(input: Login): String
-    logout: Boolean
+type Mutation {
+    register(input: Register): User!
+    updateAccount(input: UpdateUser): User!
+    deleteAccount: User!
 }
 
 input Register {
@@ -20,18 +16,12 @@ input Register {
     address: String!
 }
 
-input Update {
+input UpdateUser {
     name: String!
     email: String!
     dateOfBirth: Time!
     gender: String!
     address: String!
-}
-
-type Mutation {
-    register(input: Register): User!
-    updateAccount(input: Update): User!
-    deleteAccount: User!
 }
 
 type User {
@@ -44,6 +34,7 @@ type User {
     address: String!
     userRoleId: ID!
     userRole: UserRole!
+    files: [FileUpload!]!
 }
 
 type UserRole {

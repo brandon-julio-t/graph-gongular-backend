@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 	"github.com/brandon-julio-t/graph-gongular-backend/factories"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
@@ -26,17 +27,17 @@ import (
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 )
 
-const defaultPort = "8080"
-const graphqlEndpoint = "/graphql"
-
-var secret []byte
+const (
+	defaultPort     = "8080"
+	graphqlEndpoint = "/graphql"
+)
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("error loading .env file")
 	}
 
-	secret = []byte(os.Getenv("APP_KEY"))
+	secret := []byte(os.Getenv("APP_KEY"))
 	if len(secret) == 0 {
 		secret = makeSecret()
 	}
@@ -47,7 +48,7 @@ func main() {
 	}
 
 	db := setupDatabase()
-	router := setupRouter(db)
+	router := setupRouter(db, secret)
 	runServer(port, router)
 }
 
@@ -121,13 +122,24 @@ func seedDatabase(db *gorm.DB) {
 	db.Create(regularUser)
 }
 
-func setupRouter(db *gorm.DB) *chi.Mux {
+func setupRouter(db *gorm.DB, secret []byte) *chi.Mux {
 	router := chi.NewRouter()
 
-	resolvers := &graph.Resolver{
+	fileRepository := &repository.FileRepository{
+		DB: &facades.FileDB{
+			Files: make([]*model.FileUpload, 0),
+		},
+	}
+	resolver := &graph.Resolver{
 		UserService: &services.UserService{
-			UserRepository:     &repository.UserRepository{DB: db},
-			UserRoleRepository: &repository.UserRoleRepository{DB: db},
+			FileRepository: fileRepository,
+			UserRepository: &repository.UserRepository{
+				DB:             db,
+				FileRepository: fileRepository,
+			},
+			UserRoleRepository: &repository.UserRoleRepository{
+				DB: db,
+			},
 		},
 		JwtService: &services.JwtService{
 			Secret:           secret,
@@ -135,12 +147,12 @@ func setupRouter(db *gorm.DB) *chi.Mux {
 		},
 	}
 
-	setupMiddlewares(router, resolvers)
+	setupMiddlewares(router, resolver)
 
 	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{
-				Resolvers: resolvers,
+				Resolvers: resolver,
 			},
 		),
 	)
@@ -151,7 +163,7 @@ func setupRouter(db *gorm.DB) *chi.Mux {
 	return router
 }
 
-func setupMiddlewares(router *chi.Mux, resolvers *graph.Resolver) {
+func setupMiddlewares(router *chi.Mux, resolver *graph.Resolver) {
 	// A good base middleware stack
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -179,11 +191,10 @@ func setupMiddlewares(router *chi.Mux, resolvers *graph.Resolver) {
 	router.Use(middlewares.CookieWriterProviderMiddleware())
 
 	// Inject services one by one to prevent circular import
-	router.Use(middlewares.AuthMiddleware(resolvers.JwtService, resolvers.UserService))
+	router.Use(middlewares.AuthMiddleware(resolver.JwtService, resolver.UserService))
 }
 
 func runServer(port string, router *chi.Mux) {
-	log.Printf("Starting app with JWT secret: %v\n", secret)
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
