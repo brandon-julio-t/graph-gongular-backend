@@ -6,28 +6,36 @@ package graph
 import (
 	"context"
 	"errors"
-	"net/http"
-	"time"
 
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
-	jwt "github.com/dgrijalva/jwt-go"
 )
 
 func (r *mutationResolver) Register(ctx context.Context, input *model.Register) (*model.User, error) {
+	if user := middlewares.UseAuth(ctx); user != nil {
+		return nil, errors.New("already signed in")
+	}
+
 	if r.UserService.AlreadyRegistered(input.Email) {
 		return nil, errors.New("user already exists")
 	}
+
 	return r.UserService.Register(input)
 }
 
 func (r *mutationResolver) UpdateAccount(ctx context.Context, input *model.Update) (*model.User, error) {
-	return r.UserService.UpdateAccount(input)
+	if user := middlewares.UseAuth(ctx); user != nil {
+		return r.UserService.UpdateAccount(user.ID, input)
+	}
+	return nil, errors.New("not signed in")
 }
 
-func (r *mutationResolver) DeleteAccount(ctx context.Context, input *model.DeleteAccount) (*model.User, error) {
-	return r.UserService.DeleteAccount(input)
+func (r *mutationResolver) DeleteAccount(ctx context.Context) (*model.User, error) {
+	if user := middlewares.UseAuth(ctx); user != nil {
+		return r.UserService.DeleteAccount(user.ID)
+	}
+	return nil, errors.New("not signed in")
 }
 
 func (r *queryResolver) Auth(ctx context.Context) (*model.User, error) {
@@ -43,53 +51,28 @@ func (r *queryResolver) Login(ctx context.Context, input *model.Login) (*string,
 	}
 
 	user, err := r.UserService.Login(input.Email, input.Password)
-
 	if err != nil {
 		return nil, err
 	}
 
-	payload := jwt.MapClaims{"userId": user.ID}
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, payload).SignedString(r.JwtSecret)
+	token, err := r.JwtService.GenerateAndSetNewTokenInCookie(
+		middlewares.UseCookieWriter(ctx),
+		user.ID,
+	)
 
 	if err != nil {
 		return nil, err
 	}
-
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    token,
-		Domain:   "graph-gongular-backend.herokuapp.com",
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-	}
-
-	w := *middlewares.UseCookieProvider(ctx)
-	w.Header().Set("Set-Cookie", cookie.String())
 
 	return &token, nil
 }
 
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
-	user := middlewares.UseAuth(ctx)
-
-	if user == nil {
+	if user := middlewares.UseAuth(ctx); user == nil {
 		return nil, errors.New("not signed in")
 	}
 
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		Domain:   "graph-gongular-backend.herokuapp.com",
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		MaxAge:   0,
-		Expires:  time.Time{},
-	}
-
-	w := *middlewares.UseCookieProvider(ctx)
-	w.Header().Add("Set-Cookie", cookie.String())
+	r.JwtService.SetExpiredTokenInCookie(middlewares.UseCookieWriter(ctx))
 
 	result := true
 	return &result, nil

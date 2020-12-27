@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-type DeleteAccount struct {
-	ID string `json:"id"`
-}
-
 type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -25,7 +21,6 @@ type Register struct {
 }
 
 type Update struct {
-	ID          string    `json:"id"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
 	DateOfBirth time.Time `json:"dateOfBirth"`

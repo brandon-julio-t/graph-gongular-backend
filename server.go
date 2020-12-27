@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
@@ -69,7 +70,7 @@ func setupDatabase() *gorm.DB {
 
 	// Migrate the schema
 	if err := db.AutoMigrate(&model.UserRole{}, &model.User{}); err != nil {
-		log.Fatal("Error while auto migrating User")
+		panic("Error while auto migrating User")
 	}
 
 	//seedDatabase(db)
@@ -124,10 +125,13 @@ func setupRouter(db *gorm.DB) *chi.Mux {
 	router := chi.NewRouter()
 
 	resolvers := &graph.Resolver{
-		JwtSecret: secret,
 		UserService: &services.UserService{
 			UserRepository:     &repository.UserRepository{DB: db},
 			UserRoleRepository: &repository.UserRoleRepository{DB: db},
+		},
+		JwtService: &services.JwtService{
+			Secret:           secret,
+			JwtCookieFactory: new(factories.JwtCookieFactory),
 		},
 	}
 
@@ -172,8 +176,10 @@ func setupMiddlewares(router *chi.Mux, resolvers *graph.Resolver) {
 	// processing should be stopped.
 	router.Use(middleware.Timeout(60 * time.Second))
 
-	router.Use(middlewares.CookieProviderMiddleware())
-	router.Use(middlewares.AuthMiddleware(secret, resolvers.UserService))
+	router.Use(middlewares.CookieWriterProviderMiddleware())
+
+	// Inject services one by one to prevent circular import
+	router.Use(middlewares.AuthMiddleware(resolvers.JwtService, resolvers.UserService))
 }
 
 func runServer(port string, router *chi.Mux) {

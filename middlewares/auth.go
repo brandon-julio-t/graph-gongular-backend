@@ -3,9 +3,9 @@ package middlewares
 import (
 	"context"
 	"fmt"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/services"
-	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
 )
@@ -14,12 +14,13 @@ type authKeyStruct struct{ name string }
 
 var authKey = authKeyStruct{name: "auth"}
 
-func AuthMiddleware(secret []byte, userService *services.UserService) func(http.Handler) http.Handler {
+func AuthMiddleware(jwtService *services.JwtService, userService *services.UserService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user, ok := userByToken(r, secret, userService)
+			user, err := marshalTokenIntoUser(&w, r, jwtService, userService)
 
-			if !ok {
+			if err != nil {
+				log.Println(err)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -30,47 +31,38 @@ func AuthMiddleware(secret []byte, userService *services.UserService) func(http.
 	}
 }
 
-func userByToken(r *http.Request, secret []byte, userService *services.UserService) (*model.User, bool) {
-	jwtToken, err := r.Cookie("jwt")
-
+func marshalTokenIntoUser(
+	w *http.ResponseWriter,
+	r *http.Request,
+	jwtService *services.JwtService,
+	userService *services.UserService,
+) (*model.User, error) {
+	jwtToken, err := r.Cookie(factories.JwtCookieName)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
-	token, err := jwt.Parse(jwtToken.Value, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return secret, nil
-	})
-
+	payload, err := jwtService.Decode(jwtToken.Value)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-
-	if !ok || !token.Valid {
-		return nil, false
-	}
-
-	userId, ok := claims["userId"].(string)
-
+	userId, ok := payload["userId"].(string)
 	if !ok {
-		return nil, false
+		return nil, fmt.Errorf("cannot find userId in token %v\n", payload)
 	}
 
 	user, err := userService.GetById(userId)
-
 	if err != nil {
-		log.Println(err)
-		return nil, false
+		return nil, err
 	}
 
-	return user, true
+	_, err = jwtService.GenerateAndSetNewTokenInCookie(w, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func UseAuth(ctx context.Context) *model.User {

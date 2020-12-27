@@ -66,8 +66,8 @@ func (s *UserService) Register(input *model.Register) (*model.User, error) {
 	})
 }
 
-func (s *UserService) UpdateAccount(input *model.Update) (*model.User, error) {
-	user, err := s.GetById(input.ID)
+func (s *UserService) UpdateAccount(id string, input *model.Update) (*model.User, error) {
+	user, err := s.GetById(id)
 
 	if err != nil {
 		return nil, err
@@ -82,8 +82,8 @@ func (s *UserService) UpdateAccount(input *model.Update) (*model.User, error) {
 	return s.UserRepository.Update(user)
 }
 
-func (s *UserService) DeleteAccount(input *model.DeleteAccount) (*model.User, error) {
-	user, err := s.GetById(input.ID)
+func (s *UserService) DeleteAccount(id string) (*model.User, error) {
+	user, err := s.GetById(id)
 	if err != nil {
 		return nil, err
 	}

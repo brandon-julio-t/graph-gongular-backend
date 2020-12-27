@@ -10,7 +10,7 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) GetById(id string) (*model.User, error) {
-	user := &model.User{}
+	user := new(model.User)
 	if err := r.DB.Joins("UserRole").First(user, "users.id = ?", id).Error; err != nil {
 		return nil, err
 	}
@@ -18,7 +18,7 @@ func (r *UserRepository) GetById(id string) (*model.User, error) {
 }
 
 func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
-	user := &model.User{}
+	user := new(model.User)
 	if err := r.DB.Joins("UserRole").First(user, "email = ?", email).Error; err != nil {
 		return nil, err
 	}

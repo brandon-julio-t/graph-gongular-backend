@@ -21,7 +21,6 @@ input Register {
 }
 
 input Update {
-    id: ID!
     name: String!
     email: String!
     dateOfBirth: Time!
@@ -29,14 +28,10 @@ input Update {
     address: String!
 }
 
-input DeleteAccount {
-    id: ID!
-}
-
 type Mutation {
     register(input: Register): User!
     updateAccount(input: Update): User!
-    deleteAccount(input: DeleteAccount): User!
+    deleteAccount: User!
 }
 
 type User {

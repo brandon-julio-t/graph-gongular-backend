@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		DeleteAccount func(childComplexity int, input *model.DeleteAccount) int
+		DeleteAccount func(childComplexity int) int
 		Register      func(childComplexity int, input *model.Register) int
 		UpdateAccount func(childComplexity int, input *model.Update) int
 	}
@@ -76,7 +76,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Register(ctx context.Context, input *model.Register) (*model.User, error)
 	UpdateAccount(ctx context.Context, input *model.Update) (*model.User, error)
-	DeleteAccount(ctx context.Context, input *model.DeleteAccount) (*model.User, error)
+	DeleteAccount(ctx context.Context) (*model.User, error)
 }
 type QueryResolver interface {
 	Auth(ctx context.Context) (*model.User, error)
@@ -104,12 +104,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteAccount_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteAccount(childComplexity, args["input"].(*model.DeleteAccount)), true
+		return e.complexity.Mutation.DeleteAccount(childComplexity), true
 
 	case "Mutation.register":
 		if e.complexity.Mutation.Register == nil {
@@ -325,7 +320,6 @@ input Register {
 }
 
 input Update {
-    id: ID!
     name: String!
     email: String!
     dateOfBirth: Time!
@@ -333,14 +327,10 @@ input Update {
     address: String!
 }
 
-input DeleteAccount {
-    id: ID!
-}
-
 type Mutation {
     register(input: Register): User!
     updateAccount(input: Update): User!
-    deleteAccount(input: DeleteAccount): User!
+    deleteAccount: User!
 }
 
 type User {
@@ -366,21 +356,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_deleteAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.DeleteAccount
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalODeleteAccount2ᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐDeleteAccount(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_register_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -580,16 +555,9 @@ func (ec *executionContext) _Mutation_deleteAccount(ctx context.Context, field g
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteAccount_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAccount(rctx, args["input"].(*model.DeleteAccount))
+		return ec.resolvers.Mutation().DeleteAccount(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2252,26 +2220,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputDeleteAccount(ctx context.Context, obj interface{}) (model.DeleteAccount, error) {
-	var it model.DeleteAccount
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputLogin(ctx context.Context, obj interface{}) (model.Login, error) {
 	var it model.Login
 	var asMap = obj.(map[string]interface{})
@@ -2366,14 +2314,6 @@ func (ec *executionContext) unmarshalInputUpdate(ctx context.Context, obj interf
 
 	for k, v := range asMap {
 		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "name":
 			var err error
 
@@ -3211,14 +3151,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
-}
-
-func (ec *executionContext) unmarshalODeleteAccount2ᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐDeleteAccount(ctx context.Context, v interface{}) (*model.DeleteAccount, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputDeleteAccount(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOLogin2ᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐLogin(ctx context.Context, v interface{}) (*model.Login, error) {

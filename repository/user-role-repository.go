@@ -10,7 +10,7 @@ type UserRoleRepository struct {
 }
 
 func (r *UserRoleRepository) GetUserRole() (*model.UserRole, error) {
-	role := &model.UserRole{}
+	role := new(model.UserRole)
 	if err := r.DB.First(role, "name = ?", "User").Error; err != nil {
 		return nil, err
 	}

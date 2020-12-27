@@ -5,21 +5,21 @@ import (
 	"net/http"
 )
 
-type cookieProviderKeyStruct struct{ name string }
+type cookieWriterProviderKeyStruct struct{ name string }
 
-var cookieProviderKey = cookieProviderKeyStruct{name: "cookie-provider"}
+var cookieWriterProviderKey = cookieWriterProviderKeyStruct{name: "cookie-provider"}
 
-func CookieProviderMiddleware() func(http.Handler) http.Handler {
+func CookieWriterProviderMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), cookieProviderKey, &w)
+			ctx := context.WithValue(r.Context(), cookieWriterProviderKey, &w)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-func UseCookieProvider(ctx context.Context) *http.ResponseWriter {
-	if w, ok := ctx.Value(cookieProviderKey).(*http.ResponseWriter); ok {
+func UseCookieWriter(ctx context.Context) *http.ResponseWriter {
+	if w, ok := ctx.Value(cookieWriterProviderKey).(*http.ResponseWriter); ok {
 		return w
 	}
 	return nil
