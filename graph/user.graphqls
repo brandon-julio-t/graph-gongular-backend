@@ -34,7 +34,6 @@ type User {
     address: String!
     userRoleId: ID!
     userRole: UserRole!
-    files: [FileUpload!]!
 }
 
 type UserRole {

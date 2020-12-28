@@ -125,25 +125,22 @@ func seedDatabase(db *gorm.DB) {
 func setupRouter(db *gorm.DB, secret []byte) *chi.Mux {
 	router := chi.NewRouter()
 
-	fileRepository := &repository.FileRepository{
-		DB: &facades.FileDB{
-			Files: make([]*model.FileUpload, 0),
-		},
-	}
 	resolver := &graph.Resolver{
 		UserService: &services.UserService{
-			FileRepository: fileRepository,
-			UserRepository: &repository.UserRepository{
-				DB:             db,
-				FileRepository: fileRepository,
-			},
-			UserRoleRepository: &repository.UserRoleRepository{
-				DB: db,
-			},
+			UserRepository:     &repository.UserRepository{DB: db},
+			UserRoleRepository: &repository.UserRoleRepository{DB: db},
 		},
 		JwtService: &services.JwtService{
 			Secret:           secret,
 			JwtCookieFactory: new(factories.JwtCookieFactory),
+		},
+		FileUploadService: &services.FileUploadService{
+			Factory: new(factories.FileUploadFactory),
+			Repository: &repository.FileUploadRepository{
+				DB: &facades.FileDB{
+					Files: make([]*model.FileUpload, 0),
+				},
+			},
 		},
 	}
 

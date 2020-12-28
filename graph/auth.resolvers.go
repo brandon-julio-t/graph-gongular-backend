@@ -5,7 +5,7 @@ package graph
 
 import (
 	"context"
-	"errors"
+	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
@@ -14,7 +14,7 @@ import (
 
 func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (string, error) {
 	if user := middlewares.UseAuth(ctx); user != nil {
-		return "", errors.New("already signed in")
+		return "", facades.AlreadyAuthenticatedError
 	}
 
 	user, err := r.UserService.Login(input.Email, input.Password)
@@ -23,7 +23,7 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (strin
 	}
 
 	token, err := r.JwtService.GenerateAndSetNewTokenInCookie(
-		middlewares.UseCookieWriter(ctx),
+		middlewares.UseResponseWriter(ctx),
 		user.ID,
 	)
 
@@ -36,10 +36,10 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (strin
 
 func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
 	if user := middlewares.UseAuth(ctx); user == nil {
-		return false, errors.New("not authenticated")
+		return false, facades.NotAuthenticatedError
 	}
 
-	r.JwtService.SetExpiredTokenInCookie(middlewares.UseCookieWriter(ctx))
+	r.JwtService.SetExpiredTokenInCookie(middlewares.UseResponseWriter(ctx))
 
 	return true, nil
 }
@@ -48,7 +48,7 @@ func (r *queryResolver) Auth(ctx context.Context) (*model.User, error) {
 	if user := middlewares.UseAuth(ctx); user != nil {
 		return user, nil
 	}
-	return nil, errors.New("not authenticated")
+	return nil, facades.NotAuthenticatedError
 }
 
 // Query returns generated.QueryResolver implementation.

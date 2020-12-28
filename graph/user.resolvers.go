@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
@@ -14,7 +15,7 @@ import (
 
 func (r *mutationResolver) Register(ctx context.Context, input *model.Register) (*model.User, error) {
 	if user := middlewares.UseAuth(ctx); user != nil {
-		return nil, errors.New("already signed in")
+		return nil, facades.AlreadyAuthenticatedError
 	}
 
 	if r.UserService.AlreadyRegistered(input.Email) {
@@ -28,14 +29,14 @@ func (r *mutationResolver) UpdateAccount(ctx context.Context, input *model.Updat
 	if user := middlewares.UseAuth(ctx); user != nil {
 		return r.UserService.UpdateAccount(user.ID, input)
 	}
-	return nil, errors.New("not authenticated")
+	return nil, facades.NotAuthenticatedError
 }
 
 func (r *mutationResolver) DeleteAccount(ctx context.Context) (*model.User, error) {
 	if user := middlewares.UseAuth(ctx); user != nil {
 		return r.UserService.DeleteAccount(user.ID)
 	}
-	return nil, errors.New("not authenticated")
+	return nil, facades.NotAuthenticatedError
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -13,7 +13,7 @@ const (
 
 type JwtCookieFactory struct{}
 
-func (f *JwtCookieFactory) NewJwtCookie(token string) *http.Cookie {
+func (*JwtCookieFactory) NewJwtCookie(token string) *http.Cookie {
 	if os.Getenv("APP_ENV") == "development" {
 		return &http.Cookie{
 			Name:     JwtCookieName,
@@ -32,7 +32,7 @@ func (f *JwtCookieFactory) NewJwtCookie(token string) *http.Cookie {
 	}
 }
 
-func (f *JwtCookieFactory) NewExpiredJwtCookie() *http.Cookie {
+func (*JwtCookieFactory) NewExpiredJwtCookie() *http.Cookie {
 	if os.Getenv("APP_ENV") == "development" {
 		return &http.Cookie{
 			Name:     JwtCookieName,

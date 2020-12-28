@@ -2,6 +2,7 @@ type FileUpload {
     id: ID!
     path: String!
     filename: String!
+    extension: String!
     size: Int!
     contentType: String!
     userId: ID!
@@ -12,7 +13,13 @@ input UpdateFile {
     filename: String!
 }
 
+extend type Query {
+    files: [FileUpload!]!
+    download(id: ID!): String!
+}
+
 extend type Mutation {
     updateFile(input: UpdateFile): FileUpload!
     deleteFile(id: ID!): FileUpload!
+    upload(files: [Upload!]!): Boolean!
 }

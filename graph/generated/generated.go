@@ -46,6 +46,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	FileUpload struct {
 		ContentType func(childComplexity int) int
+		Extension   func(childComplexity int) int
 		Filename    func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Path        func(childComplexity int) int
@@ -65,14 +66,15 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Auth func(childComplexity int) int
+		Auth     func(childComplexity int) int
+		Download func(childComplexity int, id string) int
+		Files    func(childComplexity int) int
 	}
 
 	User struct {
 		Address     func(childComplexity int) int
 		DateOfBirth func(childComplexity int) int
 		Email       func(childComplexity int) int
-		Files       func(childComplexity int) int
 		Gender      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
@@ -99,6 +101,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Auth(ctx context.Context) (*model.User, error)
+	Files(ctx context.Context) ([]*model.FileUpload, error)
+	Download(ctx context.Context, id string) (string, error)
 }
 
 type executableSchema struct {
@@ -122,6 +126,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FileUpload.ContentType(childComplexity), true
+
+	case "FileUpload.extension":
+		if e.complexity.FileUpload.Extension == nil {
+			break
+		}
+
+		return e.complexity.FileUpload.Extension(childComplexity), true
 
 	case "FileUpload.filename":
 		if e.complexity.FileUpload.Filename == nil {
@@ -251,6 +262,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Auth(childComplexity), true
 
+	case "Query.download":
+		if e.complexity.Query.Download == nil {
+			break
+		}
+
+		args, err := ec.field_Query_download_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Download(childComplexity, args["id"].(string)), true
+
+	case "Query.files":
+		if e.complexity.Query.Files == nil {
+			break
+		}
+
+		return e.complexity.Query.Files(childComplexity), true
+
 	case "User.address":
 		if e.complexity.User.Address == nil {
 			break
@@ -271,13 +301,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Email(childComplexity), true
-
-	case "User.files":
-		if e.complexity.User.Files == nil {
-			break
-		}
-
-		return e.complexity.User.Files(childComplexity), true
 
 	case "User.gender":
 		if e.complexity.User.Gender == nil {
@@ -417,6 +440,7 @@ extend type Mutation {
     id: ID!
     path: String!
     filename: String!
+    extension: String!
     size: Int!
     contentType: String!
     userId: ID!
@@ -427,12 +451,14 @@ input UpdateFile {
     filename: String!
 }
 
+extend type Query {
+    files: [FileUpload!]!
+    download(id: ID!): String!
+}
+
 extend type Mutation {
     updateFile(input: UpdateFile): FileUpload!
     deleteFile(id: ID!): FileUpload!
-}
-`, BuiltIn: false},
-	{Name: "graph/upload.graphqls", Input: `extend type Mutation {
     upload(files: [Upload!]!): Boolean!
 }
 `, BuiltIn: false},
@@ -472,7 +498,6 @@ type User {
     address: String!
     userRoleId: ID!
     userRole: UserRole!
-    files: [FileUpload!]!
 }
 
 type UserRole {
@@ -589,6 +614,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_download_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -735,6 +775,41 @@ func (ec *executionContext) _FileUpload_filename(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FileUpload_extension(ctx context.Context, field graphql.CollectedField, obj *model.FileUpload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FileUpload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Extension, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FileUpload_size(ctx context.Context, field graphql.CollectedField, obj *model.FileUpload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -765,9 +840,9 @@ func (ec *executionContext) _FileUpload_size(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FileUpload_contentType(ctx context.Context, field graphql.CollectedField, obj *model.FileUpload) (ret graphql.Marshaler) {
@@ -1197,6 +1272,83 @@ func (ec *executionContext) _Query_auth(ctx context.Context, field graphql.Colle
 	return ec.marshalNUser2ᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_files(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Files(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.FileUpload)
+	fc.Result = res
+	return ec.marshalNFileUpload2ᚕᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐFileUploadᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_download(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_download_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Download(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1581,41 +1733,6 @@ func (ec *executionContext) _User_userRole(ctx context.Context, field graphql.Co
 	res := resTmp.(*model.UserRole)
 	fc.Result = res
 	return ec.marshalNUserRole2ᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐUserRole(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_files(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Files, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.FileUpload)
-	fc.Result = res
-	return ec.marshalNFileUpload2ᚕᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐFileUploadᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserRole_id(ctx context.Context, field graphql.CollectedField, obj *model.UserRole) (ret graphql.Marshaler) {
@@ -2977,6 +3094,11 @@ func (ec *executionContext) _FileUpload(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "extension":
+			out.Values[i] = ec._FileUpload_extension(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "size":
 			out.Values[i] = ec._FileUpload_size(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3098,6 +3220,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "files":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_files(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "download":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_download(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -3166,11 +3316,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "userRole":
 			out.Values[i] = ec._User_userRole(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "files":
-			out.Values[i] = ec._User_files(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3543,13 +3688,13 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
+func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
+	res, err := graphql.UnmarshalInt64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
+func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	res := graphql.MarshalInt64(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

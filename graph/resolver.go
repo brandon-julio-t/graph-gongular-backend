@@ -11,6 +11,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	UserService *services.UserService
-	JwtService  *services.JwtService
+	UserService       *services.UserService
+	JwtService        *services.JwtService
+	FileUploadService *services.FileUploadService
 }
