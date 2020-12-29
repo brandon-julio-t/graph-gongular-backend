@@ -8,8 +8,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/brandon-julio-t/graph-gongular-backend/facades"
@@ -60,21 +58,14 @@ func (r *queryResolver) Download(ctx context.Context, id string) (string, error)
 		return "", facades.NotAuthenticatedError
 	}
 
-	file, err := r.FileUploadService.GetFileById(id)
+	fileUpload, err := r.FileUploadService.GetFileById(id)
 	if err != nil {
 		return "", err
 	}
 
-	if file.UserID != user.ID {
+	if fileUpload.UserID != user.ID {
 		return "", errors.New("unauthorized download")
 	}
 
-	filename := fmt.Sprintf("%v.%v", file.ID, file.Extension)
-	path := filepath.Join(facades.BaseDir, filename)
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-
-	return base64.StdEncoding.EncodeToString(data), nil
+	return base64.StdEncoding.EncodeToString(fileUpload.File), nil
 }

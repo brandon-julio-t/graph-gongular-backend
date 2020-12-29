@@ -14,7 +14,7 @@ type AuthJwtClaims struct {
 func NewAuthJwtClaims(userId string) *AuthJwtClaims {
 	duration, err := time.ParseDuration("15m")
 
-	if err != nil  {
+	if err != nil {
 		log.Fatalln(err)
 	}
 

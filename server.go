@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rand"
-	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 	"github.com/brandon-julio-t/graph-gongular-backend/factories"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
@@ -70,7 +69,7 @@ func setupDatabase() *gorm.DB {
 	}
 
 	// Migrate the schema
-	if err := db.AutoMigrate(&model.UserRole{}, &model.User{}); err != nil {
+	if err := db.AutoMigrate(new(model.UserRole), new(model.User), new(model.FileUpload)); err != nil {
 		panic("Error while auto migrating User")
 	}
 
@@ -135,12 +134,8 @@ func setupRouter(db *gorm.DB, secret []byte) *chi.Mux {
 			JwtCookieFactory: new(factories.JwtCookieFactory),
 		},
 		FileUploadService: &services.FileUploadService{
-			Factory: new(factories.FileUploadFactory),
-			Repository: &repository.FileUploadRepository{
-				DB: &facades.FileDB{
-					Files: make([]*model.FileUpload, 0),
-				},
-			},
+			Factory:    new(factories.FileUploadFactory),
+			Repository: &repository.FileUploadRepository{DB: db},
 		},
 	}
 

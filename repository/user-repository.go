@@ -40,7 +40,7 @@ func (r *UserRepository) Update(user *model.User) (*model.User, error) {
 }
 
 func (r *UserRepository) Delete(user *model.User) (*model.User, error) {
-	if err := r.DB.Where("id = ?", user.ID).Delete(user).Error; err != nil {
+	if err := r.DB.Delete(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil

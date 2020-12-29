@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 	"errors"
-	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 
+	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"

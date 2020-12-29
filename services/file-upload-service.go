@@ -21,7 +21,10 @@ func (s *FileUploadService) GetFilesByUser(user *model.User) ([]*model.FileUploa
 }
 
 func (s *FileUploadService) SaveFile(file *graphql.Upload, user *model.User) (*model.FileUpload, error) {
-	fileUpload := s.Factory.NewFileUpload(file, user)
+	fileUpload, err := s.Factory.NewFileUpload(file, user)
+	if err != nil {
+		return nil, err
+	}
 	return s.Repository.Save(fileUpload)
 }
 
@@ -37,5 +40,9 @@ func (s *FileUploadService) UpdateFile(input *model.UpdateFile) (*model.FileUplo
 }
 
 func (s *FileUploadService) DeleteFile(id string) (*model.FileUpload, error) {
-	return s.Repository.Delete(id)
+	fileUpload, err := s.Repository.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+	return s.Repository.Delete(fileUpload)
 }

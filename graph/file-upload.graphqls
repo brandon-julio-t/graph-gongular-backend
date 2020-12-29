@@ -1,6 +1,5 @@
 type FileUpload {
     id: ID!
-    path: String!
     filename: String!
     extension: String!
     size: Int!

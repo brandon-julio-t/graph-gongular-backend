@@ -9,7 +9,7 @@ import (
 )
 
 type JwtService struct {
-	Secret []byte
+	Secret           []byte
 	JwtCookieFactory *factories.JwtCookieFactory
 }
 
