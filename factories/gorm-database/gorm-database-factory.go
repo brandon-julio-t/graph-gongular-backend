@@ -1,4 +1,4 @@
-package factories
+package gorm_database
 
 import (
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
@@ -11,21 +11,19 @@ import (
 	"time"
 )
 
-type GormDatabaseFactory struct{}
+type Factory struct{}
 
-func (*GormDatabaseFactory) NewGormDB() *gorm.DB {
+func (*Factory) Create() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database")
 	}
 
-	models := []interface{}{
+	if err := db.AutoMigrate(
 		new(model.UserRole),
 		new(model.User),
 		new(model.FileUpload),
-	}
-
-	if err := db.AutoMigrate(models); err != nil {
+	); err != nil {
 		log.Fatal("Error while auto migrating User")
 	}
 

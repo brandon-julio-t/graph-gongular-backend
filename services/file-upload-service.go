@@ -2,13 +2,13 @@ package services
 
 import (
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/brandon-julio-t/graph-gongular-backend/factories"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/file-upload"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/repository"
 )
 
 type FileUploadService struct {
-	Factory    *factories.FileUploadFactory
+	Factory    *file_upload.Factory
 	Repository *repository.FileUploadRepository
 }
 
@@ -21,7 +21,7 @@ func (s *FileUploadService) GetFilesByUser(user *model.User) ([]*model.FileUploa
 }
 
 func (s *FileUploadService) SaveFile(file *graphql.Upload, user *model.User) (*model.FileUpload, error) {
-	fileUpload, err := s.Factory.NewFileUpload(file, user)
+	fileUpload, err := s.Factory.Create(file, user)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package factories
+package secret
 
 import (
 	"crypto/rand"
@@ -6,9 +6,9 @@ import (
 	"os"
 )
 
-type SecretFactory struct{}
+type Factory struct{}
 
-func (*SecretFactory) NewSecret() []byte {
+func (*Factory) Create() []byte {
 	if secret := []byte(os.Getenv("APP_KEY")); len(secret) > 0 {
 		return secret
 	}

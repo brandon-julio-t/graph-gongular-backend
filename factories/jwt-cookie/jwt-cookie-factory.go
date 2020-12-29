@@ -1,4 +1,4 @@
-package factories
+package jwt_cookie
 
 import (
 	"net/http"
@@ -11,9 +11,9 @@ const (
 	domain        = "graph-gongular-backend.herokuapp.com"
 )
 
-type JwtCookieFactory struct{}
+type Factory struct{}
 
-func (*JwtCookieFactory) NewJwtCookie(token string) *http.Cookie {
+func (*Factory) Create(token string) *http.Cookie {
 	if os.Getenv("APP_ENV") == "development" {
 		return &http.Cookie{
 			Name:     JwtCookieName,
@@ -32,7 +32,7 @@ func (*JwtCookieFactory) NewJwtCookie(token string) *http.Cookie {
 	}
 }
 
-func (*JwtCookieFactory) NewExpiredJwtCookie() *http.Cookie {
+func (*Factory) CreateExpired() *http.Cookie {
 	if os.Getenv("APP_ENV") == "development" {
 		return &http.Cookie{
 			Name:     JwtCookieName,

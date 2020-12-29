@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"github.com/brandon-julio-t/graph-gongular-backend/models"
 
 	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
@@ -22,14 +23,16 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (strin
 		return "", err
 	}
 
-	token, err := r.JwtService.GenerateAndSetNewTokenInCookie(
-		middlewares.UseResponseWriter(ctx),
-		user.ID,
-	)
-
+	payload := models.NewAuthJwtClaims(user.ID)
+	token, err := r.JwtService.Encode(payload)
 	if err != nil {
 		return "", err
 	}
+
+	r.JwtService.PutJwtCookie(
+		middlewares.UseResponseWriter(ctx),
+		r.JwtService.JwtCookieFactory.Create(token),
+	)
 
 	return token, nil
 }
@@ -39,7 +42,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
 		return false, facades.NotAuthenticatedError
 	}
 
-	r.JwtService.SetExpiredTokenInCookie(middlewares.UseResponseWriter(ctx))
+	r.JwtService.ClearJwtCookie(middlewares.UseResponseWriter(ctx))
 
 	return true, nil
 }

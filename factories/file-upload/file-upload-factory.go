@@ -1,4 +1,4 @@
-package factories
+package file_upload
 
 import (
 	"github.com/99designs/gqlgen/graphql"
@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-type FileUploadFactory struct{}
+type Factory struct{}
 
-func (f *FileUploadFactory) NewFileUpload(file *graphql.Upload, user *model.User) (*model.FileUpload, error) {
+func (f *Factory) Create(file *graphql.Upload, user *model.User) (*model.FileUpload, error) {
 	filenameSplit := strings.Split(file.Filename, ".")
 	filename := strings.Join(filenameSplit[:len(filenameSplit)-1], "")
 	extension := filenameSplit[len(filenameSplit)-1]

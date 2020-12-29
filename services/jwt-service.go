@@ -2,7 +2,7 @@ package services
 
 import (
 	"fmt"
-	"github.com/brandon-julio-t/graph-gongular-backend/factories"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/jwt-cookie"
 	"github.com/brandon-julio-t/graph-gongular-backend/models"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
@@ -10,7 +10,7 @@ import (
 
 type JwtService struct {
 	Secret           []byte
-	JwtCookieFactory *factories.JwtCookieFactory
+	JwtCookieFactory *jwt_cookie.Factory
 }
 
 func (s *JwtService) Decode(jwtToken string) (jwt.MapClaims, error) {
@@ -33,17 +33,7 @@ func (s *JwtService) Decode(jwtToken string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func (s *JwtService) GenerateAndSetNewTokenInCookie(w *http.ResponseWriter, userId string) (string, error) {
-	token, err := s.encode(models.NewAuthJwtClaims(userId))
-	if err != nil {
-		return "", err
-	}
-
-	s.setTokenInCookie(w, s.JwtCookieFactory.NewJwtCookie(token))
-	return token, nil
-}
-
-func (s *JwtService) encode(payload jwt.Claims) (string, error) {
+func (s *JwtService) Encode(payload jwt.Claims) (string, error) {
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS512, payload).SignedString(s.Secret)
 	if err != nil {
 		return "", err
@@ -51,10 +41,26 @@ func (s *JwtService) encode(payload jwt.Claims) (string, error) {
 	return token, nil
 }
 
-func (s *JwtService) SetExpiredTokenInCookie(w *http.ResponseWriter) {
-	s.setTokenInCookie(w, s.JwtCookieFactory.NewExpiredJwtCookie())
+func (s *JwtService) Regenerate(oldToken string) (string, error) {
+	oldData, err := s.Decode(oldToken)
+	if err != nil {
+		return "", err
+	}
+
+	userId, ok := oldData["userId"].(string)
+	if !ok {
+		return "", fmt.Errorf("cannot get user id as string %v\n", oldData)
+	}
+
+	newData := models.NewAuthJwtClaims(userId)
+	return s.Encode(newData)
 }
 
-func (s *JwtService) setTokenInCookie(w *http.ResponseWriter, cookie *http.Cookie) {
+func (s *JwtService) PutJwtCookie(w *http.ResponseWriter, cookie *http.Cookie) {
 	(*w).Header().Set("Set-Cookie", cookie.String())
+}
+
+func (s *JwtService) ClearJwtCookie(w *http.ResponseWriter) {
+	expiredJwtCookie := s.JwtCookieFactory.CreateExpired()
+	s.PutJwtCookie(w, expiredJwtCookie)
 }

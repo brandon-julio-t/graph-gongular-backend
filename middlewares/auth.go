@@ -3,7 +3,7 @@ package middlewares
 import (
 	"context"
 	"fmt"
-	"github.com/brandon-julio-t/graph-gongular-backend/factories"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/jwt-cookie"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/services"
 	"log"
@@ -17,7 +17,7 @@ var authKey = authKeyStruct{name: "auth"}
 func AuthMiddleware(jwtService *services.JwtService, userService *services.UserService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user, err := marshalTokenIntoUser(&w, r, jwtService, userService)
+			user, err := marshalTokenIntoUser(r, jwtService, userService)
 
 			if err != nil {
 				log.Println(err)
@@ -32,12 +32,11 @@ func AuthMiddleware(jwtService *services.JwtService, userService *services.UserS
 }
 
 func marshalTokenIntoUser(
-	w *http.ResponseWriter,
 	r *http.Request,
 	jwtService *services.JwtService,
 	userService *services.UserService,
 ) (*model.User, error) {
-	jwtToken, err := r.Cookie(factories.JwtCookieName)
+	jwtToken, err := r.Cookie(jwt_cookie.JwtCookieName)
 	if err != nil {
 		return nil, err
 	}
@@ -52,17 +51,7 @@ func marshalTokenIntoUser(
 		return nil, fmt.Errorf("cannot find userId in token %v\n", payload)
 	}
 
-	user, err := userService.GetById(userId)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = jwtService.GenerateAndSetNewTokenInCookie(w, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	return userService.GetById(userId)
 }
 
 func UseAuth(ctx context.Context) *model.User {

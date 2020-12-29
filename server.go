@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/brandon-julio-t/graph-gongular-backend/factories"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/chi-router"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/gorm-database"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/secret"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
@@ -14,9 +16,9 @@ func main() {
 	}
 
 	port := getPort()
-	secret := new(factories.SecretFactory).NewSecret()
-	db := new(factories.GormDatabaseFactory).NewGormDB()
-	router := new(factories.ChiRouterFactory).NewRouter(secret, db)
+	appSecret := new(secret.Factory).Create()
+	db := new(gorm_database.Factory).Create()
+	router := new(chi_router.Factory).Create(appSecret, db)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
