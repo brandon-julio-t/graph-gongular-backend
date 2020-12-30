@@ -1,10 +1,12 @@
+scalar Upload
+
 type FileUpload {
     id: ID!
     filename: String!
     extension: String!
     size: Int!
     contentType: String!
-    userId: ID!
+    user: User!
 }
 
 input UpdateFile {

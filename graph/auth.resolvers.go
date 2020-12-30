@@ -5,12 +5,12 @@ package graph
 
 import (
 	"context"
-	"github.com/brandon-julio-t/graph-gongular-backend/models"
 
 	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
+	"github.com/brandon-julio-t/graph-gongular-backend/models"
 )
 
 func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (string, error) {
@@ -54,7 +54,11 @@ func (r *queryResolver) Auth(ctx context.Context) (*model.User, error) {
 	return nil, facades.NotAuthenticatedError
 }
 
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

@@ -11,15 +11,19 @@ type FileUploadRepository struct {
 
 func (r *FileUploadRepository) GetById(id string) (*model.FileUpload, error) {
 	fileUpload := new(model.FileUpload)
-	if err := r.DB.Joins("User").First(fileUpload, "file_uploads.id = ?", id).Error; err != nil {
+	if err := r.preloadFileUploadAssociations().First(fileUpload, "file_uploads.id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return fileUpload, nil
 }
 
+func (r *FileUploadRepository) preloadFileUploadAssociations() *gorm.DB {
+	return r.DB.Preload("User")
+}
+
 func (r *FileUploadRepository) GetAllByUser(user *model.User) ([]*model.FileUpload, error) {
 	var fileUploads []*model.FileUpload
-	if err := r.DB.Joins("User").Where("user_id = ?", user.ID).Find(&fileUploads).Error; err != nil {
+	if err := r.preloadFileUploadAssociations().Find(&fileUploads, "user_id = ?", user.ID).Error; err != nil {
 		return nil, err
 	}
 	return fileUploads, nil

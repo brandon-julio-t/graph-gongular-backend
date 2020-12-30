@@ -14,4 +14,5 @@ type Resolver struct {
 	UserService       *services.UserService
 	JwtService        *services.JwtService
 	FileUploadService *services.FileUploadService
+	FriendService     *services.FriendService
 }

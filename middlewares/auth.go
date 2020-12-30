@@ -48,7 +48,7 @@ func marshalTokenIntoUser(
 
 	userId, ok := payload["userId"].(string)
 	if !ok {
-		return nil, fmt.Errorf("cannot find userId in token %v\n", payload)
+		return nil, fmt.Errorf("cannot find userId in token %v", payload)
 	}
 
 	return userService.GetById(userId)

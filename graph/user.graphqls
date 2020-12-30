@@ -1,7 +1,10 @@
 scalar Time
-scalar Upload
 
-type Mutation {
+extend type Query {
+    allUsers: [User!]!
+}
+
+extend type Mutation {
     register(input: Register): User!
     updateAccount(input: UpdateUser): User!
     deleteAccount: User!
@@ -34,6 +37,8 @@ type User {
     address: String!
     userRoleId: ID!
     userRole: UserRole!
+    friends: [User!]!
+    fileUploads: [FileUpload!]!
 }
 
 type UserRole {

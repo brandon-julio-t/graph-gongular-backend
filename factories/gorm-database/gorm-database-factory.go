@@ -19,17 +19,20 @@ func (*Factory) Create() *gorm.DB {
 		log.Fatal("failed to connect database")
 	}
 
+	migrateDatabase(db)
+	//seedDatabase(db)
+
+	return db
+}
+
+func migrateDatabase(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		new(model.UserRole),
 		new(model.User),
 		new(model.FileUpload),
 	); err != nil {
-		log.Fatal("Error while auto migrating User")
+		log.Fatal(err)
 	}
-
-	//seedDatabase(db)
-
-	return db
 }
 
 func seedDatabase(db *gorm.DB) {

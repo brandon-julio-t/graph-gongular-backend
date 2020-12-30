@@ -3,13 +3,10 @@ package chi_router
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/brandon-julio-t/graph-gongular-backend/factories/file-upload"
-	"github.com/brandon-julio-t/graph-gongular-backend/factories/jwt-cookie"
+	resolverFactory "github.com/brandon-julio-t/graph-gongular-backend/factories/resolver"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
-	"github.com/brandon-julio-t/graph-gongular-backend/repository"
-	"github.com/brandon-julio-t/graph-gongular-backend/services"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
@@ -23,7 +20,7 @@ const graphqlEndpoint = "/graphql"
 type Factory struct{}
 
 func (*Factory) Create(secret []byte, db *gorm.DB) *chi.Mux {
-	resolver := setupResolver(secret, db)
+	resolver := new(resolverFactory.Factory).Create(secret, db)
 	router := setupRouterWithMiddlewares(resolver)
 
 	srv := handler.NewDefaultServer(
@@ -38,23 +35,6 @@ func (*Factory) Create(secret []byte, db *gorm.DB) *chi.Mux {
 	router.Handle(graphqlEndpoint, srv)
 
 	return router
-}
-
-func setupResolver(secret []byte, db *gorm.DB) *graph.Resolver {
-	return &graph.Resolver{
-		UserService: &services.UserService{
-			UserRepository:     &repository.UserRepository{DB: db},
-			UserRoleRepository: &repository.UserRoleRepository{DB: db},
-		},
-		JwtService: &services.JwtService{
-			Secret:           secret,
-			JwtCookieFactory: new(jwt_cookie.Factory),
-		},
-		FileUploadService: &services.FileUploadService{
-			Factory:    new(file_upload.Factory),
-			Repository: &repository.FileUploadRepository{DB: db},
-		},
-	}
 }
 
 func setupRouterWithMiddlewares(resolver *graph.Resolver) *chi.Mux {

@@ -27,7 +27,7 @@ func (s *JwtService) Decode(jwtToken string) (jwt.MapClaims, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("invalid token %v\n", jwtToken)
+		return nil, fmt.Errorf("invalid token %v", jwtToken)
 	}
 
 	return claims, nil
@@ -49,7 +49,7 @@ func (s *JwtService) Regenerate(oldToken string) (string, error) {
 
 	userId, ok := oldData["userId"].(string)
 	if !ok {
-		return "", fmt.Errorf("cannot get user id as string %v\n", oldData)
+		return "", fmt.Errorf("cannot get user id as string %v", oldData)
 	}
 
 	newData := models.NewAuthJwtClaims(userId)

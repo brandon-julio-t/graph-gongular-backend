@@ -1,0 +1,4 @@
+extend type Mutation {
+    addFriend(friendId: ID!): User!
+    removeFriend(friendId: ID!): User!
+}

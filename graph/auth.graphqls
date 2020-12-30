@@ -7,7 +7,7 @@ type Query {
     auth: User!
 }
 
-extend type Mutation {
+type Mutation {
     login(input: Login): String!
     logout: Boolean!
 }

@@ -9,9 +9,21 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+func (r *UserRepository) GetAllExcept(user *model.User) ([]*model.User, error) {
+	var users []*model.User
+	if err := r.preloadUserAssociations().Where("users.id != ?", user.ID).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *UserRepository) preloadUserAssociations() *gorm.DB {
+	return r.DB.Preload("UserRole").Preload("Friends").Preload("FileUploads")
+}
+
 func (r *UserRepository) GetById(id string) (*model.User, error) {
 	user := new(model.User)
-	if err := r.DB.Joins("UserRole").First(user, "users.id = ?", id).Error; err != nil {
+	if err := r.preloadUserAssociations().First(user, "users.id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -19,7 +31,7 @@ func (r *UserRepository) GetById(id string) (*model.User, error) {
 
 func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
 	user := new(model.User)
-	if err := r.DB.Joins("UserRole").First(user, "email = ?", email).Error; err != nil {
+	if err := r.preloadUserAssociations().First(user, "email = ?", email).Error; err != nil {
 		return nil, err
 	}
 	return user, nil

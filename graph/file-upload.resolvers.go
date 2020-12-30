@@ -37,7 +37,7 @@ func (r *mutationResolver) Upload(ctx context.Context, files []*graphql.Upload) 
 
 	for _, file := range files {
 		if saved, err := r.FileUploadService.SaveFile(file, user); err != nil {
-			return false, fmt.Errorf("cannot save file %v\n", saved)
+			return false, fmt.Errorf("cannot save file %v", saved)
 		}
 	}
 

@@ -14,6 +14,10 @@ type UserService struct {
 	UserRoleRepository *repository.UserRoleRepository
 }
 
+func (s *UserService) GetAllExcept(user *model.User) ([]*model.User, error) {
+	return s.UserRepository.GetAllExcept(user)
+}
+
 func (s *UserService) GetById(id string) (*model.User, error) {
 	return s.UserRepository.GetById(id)
 }
@@ -53,17 +57,19 @@ func (s *UserService) Register(input *model.Register) (*model.User, error) {
 		return nil, err
 	}
 
-	return s.UserRepository.Save(&model.User{
-		ID:          uuid.Must(uuid.NewRandom()).String(),
-		Name:        input.Name,
-		Email:       input.Email,
-		Password:    string(hash),
-		DateOfBirth: input.DateOfBirth,
-		Gender:      input.Gender,
-		Address:     input.Address,
-		UserRoleID:  role.ID,
-		UserRole:    role,
-	})
+	return s.UserRepository.Save(
+		&model.User{
+			ID:          uuid.Must(uuid.NewRandom()).String(),
+			Name:        input.Name,
+			Email:       input.Email,
+			Password:    string(hash),
+			DateOfBirth: input.DateOfBirth,
+			Gender:      input.Gender,
+			Address:     input.Address,
+			UserRoleID:  role.ID,
+			UserRole:    role,
+		},
+	)
 }
 
 func (s *UserService) UpdateAccount(id string, input *model.UpdateUser) (*model.User, error) {
