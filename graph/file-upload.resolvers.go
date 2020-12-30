@@ -44,14 +44,6 @@ func (r *mutationResolver) Upload(ctx context.Context, files []*graphql.Upload) 
 	return true, nil
 }
 
-func (r *queryResolver) Files(ctx context.Context) ([]*model.FileUpload, error) {
-	user := middlewares.UseAuth(ctx)
-	if user == nil {
-		return nil, facades.NotAuthenticatedError
-	}
-	return r.FileUploadService.GetFilesByUser(user)
-}
-
 func (r *queryResolver) Download(ctx context.Context, id string) (string, error) {
 	user := middlewares.UseAuth(ctx)
 	if user == nil {

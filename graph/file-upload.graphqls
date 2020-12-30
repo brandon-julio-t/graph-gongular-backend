@@ -15,7 +15,6 @@ input UpdateFile {
 }
 
 extend type Query {
-    files: [FileUpload!]!
     download(id: ID!): String!
 }
 

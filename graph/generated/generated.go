@@ -70,7 +70,6 @@ type ComplexityRoot struct {
 		AllUsers func(childComplexity int) int
 		Auth     func(childComplexity int) int
 		Download func(childComplexity int, id string) int
-		Files    func(childComplexity int) int
 	}
 
 	User struct {
@@ -107,7 +106,6 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Auth(ctx context.Context) (*model.User, error)
-	Files(ctx context.Context) ([]*model.FileUpload, error)
 	Download(ctx context.Context, id string) (string, error)
 	AllUsers(ctx context.Context) ([]*model.User, error)
 }
@@ -305,13 +303,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Download(childComplexity, args["id"].(string)), true
 
-	case "Query.files":
-		if e.complexity.Query.Files == nil {
-			break
-		}
-
-		return e.complexity.Query.Files(childComplexity), true
-
 	case "User.address":
 		if e.complexity.User.Address == nil {
 			break
@@ -498,7 +489,6 @@ input UpdateFile {
 }
 
 extend type Query {
-    files: [FileUpload!]!
     download(id: ID!): String!
 }
 
@@ -1405,41 +1395,6 @@ func (ec *executionContext) _Query_auth(ctx context.Context, field graphql.Colle
 	res := resTmp.(*model.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_files(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Files(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.FileUpload)
-	fc.Result = res
-	return ec.marshalNFileUpload2ᚕᚖgithubᚗcomᚋbrandonᚑjulioᚑtᚋgraphᚑgongularᚑbackendᚋgraphᚋmodelᚐFileUploadᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_download(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3460,20 +3415,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_auth(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "files":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_files(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

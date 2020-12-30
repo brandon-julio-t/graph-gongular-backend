@@ -74,6 +74,102 @@ func seedDatabase(db *gorm.DB) {
 		UserRole:    userRole,
 	}
 
+	adam := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Adam",
+		Email:       "adam@adam.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Adam Address",
+		UserRole:    userRole,
+	}
+
+	jensen := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Jensen",
+		Email:       "jensen@jensen.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Jensen Address",
+		UserRole:    userRole,
+	}
+
+	hakurei := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Hakurei",
+		Email:       "hakurei@hakurei.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Hakurei Address",
+		UserRole:    userRole,
+	}
+
+	reimu := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Reimu",
+		Email:       "reimu@reimu.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Reimu Address",
+		UserRole:    userRole,
+	}
+
+	marisa := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Marisa",
+		Email:       "marisa@marisa.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Marisa Address",
+		UserRole:    userRole,
+	}
+
+	kirisame := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Kirisame",
+		Email:       "kirisame@kirisame.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Kirisame Address",
+		UserRole:    userRole,
+	}
+
+	dante := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Dante",
+		Email:       "dante@dante.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Dante Address",
+		UserRole:    userRole,
+	}
+
+	vergil := &model.User{
+		ID:          uuid.Must(uuid.NewRandom()).String(),
+		Name:        "Vergil",
+		Email:       "vergil@vergil.com",
+		Password:    string(userHash),
+		DateOfBirth: userDOB,
+		Gender:      "Male",
+		Address:     "Vergil Address",
+		UserRole:    userRole,
+	}
+
 	db.Create(adminUser)
 	db.Create(regularUser)
+	db.Create(adam)
+	db.Create(jensen)
+	db.Create(hakurei)
+	db.Create(reimu)
+	db.Create(marisa)
+	db.Create(kirisame)
+	db.Create(dante)
+	db.Create(vergil)
 }

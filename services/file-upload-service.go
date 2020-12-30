@@ -24,10 +24,6 @@ func (s *FileUploadService) GetFileById(id string) (*model.FileUpload, error) {
 	return s.Repository.GetById(id)
 }
 
-func (s *FileUploadService) GetFilesByUser(user *model.User) ([]*model.FileUpload, error) {
-	return s.Repository.GetAllByUser(user)
-}
-
 func (s *FileUploadService) SaveFile(file *graphql.Upload, user *model.User) (*model.FileUpload, error) {
 	fileUpload, err := s.Factory.Create(file, user)
 	if err != nil {
