@@ -3,7 +3,6 @@ package chi_router
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	resolverFactory "github.com/brandon-julio-t/graph-gongular-backend/factories/resolver"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
@@ -20,7 +19,7 @@ const graphqlEndpoint = "/graphql"
 type Factory struct{}
 
 func (*Factory) Create(secret []byte, db *gorm.DB) *chi.Mux {
-	resolver := new(resolverFactory.Factory).Create(secret, db)
+	resolver := graph.NewResolver(db, secret)
 	router := setupRouterWithMiddlewares(resolver)
 
 	srv := handler.NewDefaultServer(

@@ -5,11 +5,19 @@ import (
 	"github.com/brandon-julio-t/graph-gongular-backend/factories/file-upload"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/repository"
+	"gorm.io/gorm"
 )
 
 type FileUploadService struct {
 	Factory    *file_upload.Factory
 	Repository *repository.FileUploadRepository
+}
+
+func NewFileUploadService(db *gorm.DB) *FileUploadService {
+	return &FileUploadService{
+		Factory:    new(file_upload.Factory),
+		Repository: &repository.FileUploadRepository{DB: db},
+	}
 }
 
 func (s *FileUploadService) GetFileById(id string) (*model.FileUpload, error) {

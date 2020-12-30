@@ -2,15 +2,33 @@ package services
 
 import (
 	"fmt"
+	"github.com/brandon-julio-t/graph-gongular-backend/factories/auth-jwt-claims"
 	"github.com/brandon-julio-t/graph-gongular-backend/factories/jwt-cookie"
-	"github.com/brandon-julio-t/graph-gongular-backend/models"
+	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
 )
 
 type JwtService struct {
-	Secret           []byte
-	JwtCookieFactory *jwt_cookie.Factory
+	secret               []byte
+	jwtCookieFactory     *jwt_cookie.Factory
+	authJwtClaimsFactory *auth_jwt_claims.Factory
+}
+
+func NewJwtService(secret []byte) *JwtService {
+	return &JwtService{
+		secret:               secret,
+		jwtCookieFactory:     new(jwt_cookie.Factory),
+		authJwtClaimsFactory: new(auth_jwt_claims.Factory),
+	}
+}
+
+func (s *JwtService) CreateAuthPayload(user *model.User) jwt.Claims {
+	return s.authJwtClaimsFactory.NewAuthJwtClaims(user.ID)
+}
+
+func (s *JwtService) CreateJwtCookie(token string) *http.Cookie {
+	return s.jwtCookieFactory.Create(token)
 }
 
 func (s *JwtService) Decode(jwtToken string) (jwt.MapClaims, error) {
@@ -18,7 +36,7 @@ func (s *JwtService) Decode(jwtToken string) (jwt.MapClaims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return s.Secret, nil
+		return s.secret, nil
 	})
 
 	if err != nil {
@@ -34,7 +52,7 @@ func (s *JwtService) Decode(jwtToken string) (jwt.MapClaims, error) {
 }
 
 func (s *JwtService) Encode(payload jwt.Claims) (string, error) {
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS512, payload).SignedString(s.Secret)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS512, payload).SignedString(s.secret)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +70,7 @@ func (s *JwtService) Regenerate(oldToken string) (string, error) {
 		return "", fmt.Errorf("cannot get user id as string %v", oldData)
 	}
 
-	newData := models.NewAuthJwtClaims(userId)
+	newData := s.authJwtClaimsFactory.NewAuthJwtClaims(userId)
 	return s.Encode(newData)
 }
 
@@ -61,6 +79,6 @@ func (s *JwtService) PutJwtCookie(w *http.ResponseWriter, cookie *http.Cookie) {
 }
 
 func (s *JwtService) ClearJwtCookie(w *http.ResponseWriter) {
-	expiredJwtCookie := s.JwtCookieFactory.CreateExpired()
+	expiredJwtCookie := s.jwtCookieFactory.CreateExpired()
 	s.PutJwtCookie(w, expiredJwtCookie)
 }

@@ -1,4 +1,4 @@
-package models
+package auth_jwt_claims
 
 import (
 	"github.com/dgrijalva/jwt-go"
@@ -6,19 +6,21 @@ import (
 	"time"
 )
 
-type AuthJwtClaims struct {
+type Factory struct {}
+
+type authJwtClaims struct {
 	*jwt.StandardClaims
 	UserId string `json:"userId"`
 }
 
-func NewAuthJwtClaims(userId string) *AuthJwtClaims {
+func (*Factory) NewAuthJwtClaims(userId string) jwt.Claims {
 	duration, err := time.ParseDuration("15m")
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	return &AuthJwtClaims{
+	return &authJwtClaims{
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(duration).Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -27,3 +29,4 @@ func NewAuthJwtClaims(userId string) *AuthJwtClaims {
 		UserId: userId,
 	}
 }
+

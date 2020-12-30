@@ -4,6 +4,7 @@ package graph
 
 import (
 	"github.com/brandon-julio-t/graph-gongular-backend/services"
+	"gorm.io/gorm"
 )
 
 // This file will not be regenerated automatically.
@@ -15,4 +16,13 @@ type Resolver struct {
 	JwtService        *services.JwtService
 	FileUploadService *services.FileUploadService
 	FriendService     *services.FriendService
+}
+
+func NewResolver(db *gorm.DB, secret []byte) *Resolver {
+	return &Resolver{
+		UserService: services.NewUserService(db),
+		JwtService: services.NewJwtService(secret),
+		FileUploadService: services.NewFileUploadService(db),
+		FriendService: services.NewFriendService(db),
+	}
 }

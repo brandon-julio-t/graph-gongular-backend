@@ -6,12 +6,20 @@ import (
 	"github.com/brandon-julio-t/graph-gongular-backend/repository"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"log"
 )
 
 type UserService struct {
 	UserRepository     *repository.UserRepository
 	UserRoleRepository *repository.UserRoleRepository
+}
+
+func NewUserService(db *gorm.DB) *UserService {
+	return &UserService{
+		UserRepository:     &repository.UserRepository{DB: db},
+		UserRoleRepository: &repository.UserRoleRepository{DB: db},
+	}
 }
 
 func (s *UserService) GetAllExcept(user *model.User) ([]*model.User, error) {

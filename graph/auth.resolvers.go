@@ -5,12 +5,10 @@ package graph
 
 import (
 	"context"
-
 	"github.com/brandon-julio-t/graph-gongular-backend/facades"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph/model"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
-	"github.com/brandon-julio-t/graph-gongular-backend/models"
 )
 
 func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (string, error) {
@@ -23,7 +21,7 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (strin
 		return "", err
 	}
 
-	payload := models.NewAuthJwtClaims(user.ID)
+	payload := r.JwtService.CreateAuthPayload(user)
 	token, err := r.JwtService.Encode(payload)
 	if err != nil {
 		return "", err
@@ -31,7 +29,7 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (strin
 
 	r.JwtService.PutJwtCookie(
 		middlewares.UseResponseWriter(ctx),
-		r.JwtService.JwtCookieFactory.Create(token),
+		r.JwtService.CreateJwtCookie(token),
 	)
 
 	return token, nil
@@ -41,9 +39,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
 	if user := middlewares.UseAuth(ctx); user == nil {
 		return false, facades.NotAuthenticatedError
 	}
-
 	r.JwtService.ClearJwtCookie(middlewares.UseResponseWriter(ctx))
-
 	return true, nil
 }
 
