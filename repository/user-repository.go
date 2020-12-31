@@ -18,7 +18,11 @@ func (r *UserRepository) GetAllExcept(user *model.User) ([]*model.User, error) {
 }
 
 func (r *UserRepository) preloadUserAssociations() *gorm.DB {
-	return r.DB.Preload("UserRole").Preload("Friends").Preload("FileUploads")
+	return r.DB.
+		Preload("UserRole").
+		Preload("Friends").
+		Preload("Friends.UserRole").
+		Preload("FileUploads")
 }
 
 func (r *UserRepository) GetById(id string) (*model.User, error) {
