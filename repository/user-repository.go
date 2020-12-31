@@ -11,7 +11,7 @@ type UserRepository struct {
 
 func (r *UserRepository) GetAllExcept(user *model.User) ([]*model.User, error) {
 	var users []*model.User
-	if err := r.preloadUserAssociations().Where("users.id != ?", user.ID).Find(&users).Error; err != nil {
+	if err := r.preloadUserAssociations().Find(&users, "users.id != ?", user.ID).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
