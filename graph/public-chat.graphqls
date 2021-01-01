@@ -1,0 +1,19 @@
+type PublicMessage {
+    id: ID!
+    userId: ID!
+    user: User!
+    message: String!
+    createdAt: Time!
+}
+
+extend type Query {
+    messages: [PublicMessage!]!
+}
+
+extend type Mutation {
+    sendMessage(message: String!): PublicMessage!
+}
+
+type Subscription {
+    messageAdded: PublicMessage!
+}

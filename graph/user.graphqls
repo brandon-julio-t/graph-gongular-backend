@@ -37,8 +37,6 @@ type User {
     address: String!
     userRoleId: ID!
     userRole: UserRole!
-    friends: [User!]!
-    fileUploads: [FileUpload!]!
 }
 
 type UserRole {

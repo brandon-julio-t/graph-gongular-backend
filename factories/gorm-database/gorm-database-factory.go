@@ -30,6 +30,7 @@ func migrateDatabase(db *gorm.DB) {
 		new(model.UserRole),
 		new(model.User),
 		new(model.FileUpload),
+		new(model.PublicMessage),
 	); err != nil {
 		log.Fatal(err)
 	}

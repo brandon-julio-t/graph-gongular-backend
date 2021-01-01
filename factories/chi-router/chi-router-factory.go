@@ -1,10 +1,9 @@
 package chi_router
 
 import (
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	graphqlServer "github.com/brandon-julio-t/graph-gongular-backend/factories/graphql-server"
 	"github.com/brandon-julio-t/graph-gongular-backend/graph"
-	"github.com/brandon-julio-t/graph-gongular-backend/graph/generated"
 	"github.com/brandon-julio-t/graph-gongular-backend/middlewares"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -20,18 +19,11 @@ type Factory struct{}
 
 func (*Factory) Create(secret []byte, db *gorm.DB) *chi.Mux {
 	resolver := graph.NewResolver(db, secret)
+	server := new(graphqlServer.Factory).Create(resolver)
+
 	router := setupRouterWithMiddlewares(resolver)
-
-	srv := handler.NewDefaultServer(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers: resolver,
-			},
-		),
-	)
-
 	router.Handle("/", playground.Handler("GraphQL playground", graphqlEndpoint))
-	router.Handle(graphqlEndpoint, srv)
+	router.Handle(graphqlEndpoint, server)
 
 	return router
 }
@@ -69,11 +61,7 @@ func setupCorsHandler() func(next http.Handler) http.Handler {
 			},
 			AllowedMethods: []string{
 				http.MethodHead,
-				http.MethodGet,
 				http.MethodPost,
-				http.MethodPut,
-				http.MethodPatch,
-				http.MethodDelete,
 			},
 			AllowedHeaders:   []string{"*"},
 			AllowCredentials: true,

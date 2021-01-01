@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Factory struct {}
+type Factory struct{}
 
 type authJwtClaims struct {
 	*jwt.StandardClaims
@@ -29,4 +29,3 @@ func (*Factory) NewAuthJwtClaims(userId string) jwt.Claims {
 		UserId: userId,
 	}
 }
-

@@ -23,3 +23,7 @@ extend type Mutation {
     deleteFile(id: ID!): FileUpload!
     upload(files: [Upload!]!): Boolean!
 }
+
+extend type User {
+    fileUploads: [FileUpload!]!
+}
